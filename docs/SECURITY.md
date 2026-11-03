@@ -1,35 +1,22 @@
 # Security Design
 
 ## Authentication
-Access tokens are signed JWTs. The API validates the signature, configured issuer, and token expiration before creating an authenticated principal.
-
-Required claims:
-- `sub`: immutable user UUID
-- `org`: immutable organization UUID
-- `username`: display/login identifier
-- `roles`: role names assigned by the trusted identity service
-
-The signing key is supplied only through `JWT_SECRET`. Use a secret manager in production and rotate keys through a planned key-id strategy.
+- Passwords are stored as BCrypt hashes (work factor 12).
+- Access tokens are signed JWTs with issuer and expiration validation.
+- Refresh tokens are high-entropy opaque values. Only SHA-256 hashes are stored in PostgreSQL.
+- Refresh token rotation is transactional. Reuse of a rotated token revokes all still-active tokens in its family.
+- Disabled users and suspended organizations cannot log in or refresh sessions.
 
 ## Authorization (RBAC)
-Use method-level checks for business operations:
-
-```java
-@PreAuthorize("hasAnyRole('ORG_ADMIN', 'HR_MANAGER')")
-public void approveLeaveRequest(UUID requestId) { ... }
-```
-
-Never accept role names from client request bodies. Roles must be assigned by trusted server-side identity and signed into the token.
+Roles are loaded from server-owned organization membership records. Registration always assigns the first account the ORG_ADMIN role; client input cannot select roles. Use method-level PreAuthorize checks for protected business operations.
 
 ## Tenant isolation
-The tenant ID is sourced exclusively from a verified JWT claim. Services and repositories must scope every tenant-owned read, update, and delete by that organization ID. A client-supplied organization ID is not an authorization decision.
-
-Use composite database constraints where appropriate, such as a foreign key containing both `organization_id` and the referenced row ID. Add integration tests that prove organization A cannot access organization B data.
+The tenant ID is sourced exclusively from a verified JWT claim. Services and repositories must scope every tenant-owned read, update, and delete by that organization ID. Composite database constraints bind user-role assignments to the same organization.
 
 ## Remaining production controls
-- Login with password hashing (Argon2id or BCrypt) and rate limiting
-- Short-lived access tokens plus refresh-token rotation and reuse detection
-- Token revocation / account disablement strategy
-- Audit events for privileged actions
-- CORS allowlist, TLS, security headers, and secret management
-- Tenant-isolation integration tests for every domain module
+- Login and registration rate limiting
+- Email verification and secure password reset
+- Access-token revocation strategy for account disablement and role changes
+- Refresh-token cleanup job and security event audit
+- CORS allowlist, TLS, secure headers, and secret manager
+- Tenant-isolation integration tests for every business module
