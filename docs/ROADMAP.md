@@ -3,24 +3,21 @@
 ## Milestone 1 — Secure backend foundation
 - [x] Java 21 / Spring Boot API bootstrap
 - [x] JWT signature, issuer, and expiry validation
-- [x] Stateless Spring Security filter chain
-- [x] RBAC role authorities and method-level authorization
-- [x] Organization identity context from signed token claims
-- [x] Fail-closed tenant context accessor
-- [x] Unit tests for token validation and tenant context
-- [ ] Compile and execute CI against GitHub Actions
+- [x] Stateless Spring Security and method-level RBAC
+- [x] Organization identity context from signed claims
 
 ## Milestone 2 — Identity and access management
-- [ ] Organization, user, role, and permission persistence
-- [ ] Login endpoint with BCrypt/Argon2id password verification
-- [ ] Refresh-token rotation, revocation, and reuse detection
-- [ ] Account disablement and role-change invalidation
-- [ ] Login rate limiting and security audit events
+- [x] PostgreSQL schema for organizations, users, roles, and refresh tokens
+- [x] Organization registration and first administrator
+- [x] Login with BCrypt password verification
+- [x] Opaque refresh tokens with rotation and replay-family revocation
+- [x] Logout endpoint
+- [ ] Integration tests for registration, login, refresh, logout, and replay
+- [ ] Rate limiting and email verification
 
 ## Milestone 3 — Tenant-safe domain foundation
-- [ ] PostgreSQL + Flyway migrations
 - [ ] Tenant-scoped repositories and service policies
-- [ ] Composite foreign keys for tenant-owned relationships
+- [ ] Composite foreign keys for all tenant-owned relationships
 - [ ] Cross-tenant access integration tests
 - [ ] Audit log and request correlation
 
